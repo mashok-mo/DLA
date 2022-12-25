@@ -4,9 +4,9 @@ class Cellular_automaton:
     def __init__(self, border, num_of_living):
         self.__border = border
         self.__num_of_living = num_of_living
-        self.__field = [0] * self.__border
+        self.__field = [' '] * self.__border
         for i in range(self.__border):
-            self.__field[i] = [0] * self.__border
+            self.__field[i] = [' '] * self.__border
         self.__stock = []
 
     @property
@@ -75,16 +75,65 @@ class Cellular_automaton:
                     else:
                         self.__stock[i][j] = 0
 
+class DLA(Cellular_automaton):
+    def __init__(self, border, percent):
+        super().__init__(border, percent)
+
+    def update(self):
+        self.field[self.border//2][self.border//2] = '#'
+        render(self.field)
+        while True:
+            num_of_ones = 0
+            i = random.randint(0, self.border - 1)
+            j = random.randint(0, self.border - 1)
+            if self.field[i][j] == ' ':
+                self.field[i][j] = 1
+                render(self.field)
+                while self.field[i][j] != '#':
+                    self.check_neighbors(i,j)
+                    if self.field[i][j] != '#':
+                        self.field[i][j] = ' '
+                        seed = random.randint(0, 3)
+                        if seed == 0:
+                            i += 1
+                        elif seed == 1:
+                            i -= 1
+                        elif seed == 2:
+                            j += 1
+                        elif seed == 3:
+                            j -= 1
+                        if i == -1 or j == -1 or i == self.border or j == self.border:
+                            render(self.field)
+                            break
+                        else:
+                            self.field[i][j] = 1
+                    render(self.field)
+            for x in range(len(self.field)):
+                for y in range(len(self.field[x])):
+                    if self.field[x][y] == '#':
+                        num_of_ones += 1
+            if num_of_ones / (self.border**2) >= self.num_of_living/100:
+                break
+
+    def check_neighbors(self, i, j):
+        for x in range(i - 1, i + 2):
+            for y in range(j - 1, j + 2):
+                if x == -1 or y == -1 or x == self.border or y == self.border or (x!= i and y != j):
+                    continue
+                if self.field[x][y] == '#':
+                    self.field[i][j] = '#'
+
 def render(field):
     for i in range(len(field)):
         for j in range(len(field[i])):
-            print(field[j][i], end = ' ')
+            print(field[i][j], end = ' ')
         print()
+    print()
 
 def main():
     border = int(input('Введите размер поля: '))
-    num_of_living = int(input('Введите количество изначально живых клеток: '))
-    cellular_automata = Cellular_automaton(border,num_of_living)
-    cellular_automata.update()
+    percent = int(input('Введите процент: '))
+    dla = DLA(border, percent)
+    dla.update()
 main()
 
